@@ -1,4 +1,4 @@
-// Thresholds and coefficients from cells C3:C11 of the Gupta BBB Score workbook.
+// Gupta et al. BBB Score descriptors.
 export const bbbProperties = [
   {
     key: 'rings',
@@ -48,9 +48,9 @@ export const bbbBand = (score) => (score >= 4 ? 'CNS-like' : 'Non-CNS-like');
 
 export function workbookScore({ rings, heavy, mw, hba, hbd, tpsa, pka }) {
   if (![rings, heavy, mw, hba, hbd, tpsa, pka].every(Number.isFinite) || mw <= 0)
-    throw new Error('A descriptor required by the BBB workbook is unavailable.');
+    throw new Error('A descriptor required for the BBB Score is unavailable.');
   const mwhbn = (hba + hbd) / Math.sqrt(mw);
-  // Keep full-precision, weighted contributions, including the workbook polynomial endpoints.
+  // Keep full precision when weighting contributions and classifying the total.
   const contributions = {
     rings: [0.336376, 0.816016, 1, 0.691115, 0.199399][rings] ?? 0,
     heavy:

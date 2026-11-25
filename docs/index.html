@@ -169,7 +169,7 @@ CC(C)NCC(O)COc1cccc2ccccc12</textarea
                   placeholder="Auto"
               /></label>
               <label class="bbb-override"
-                >BBB Score · workbook pKa<input
+                >BBB Score · pKa<input
                   type="number"
                   step="any"
                   id="bbb_pka"
@@ -302,9 +302,7 @@ CC(C)NCC(O)COc1cccc2ccccc12</textarea
         <p>
           Supply measured or independently calculated pKa and logD values in the overrides or in CSV
           columns named <code>pka</code> and <code>logd</code>. A supplied pKa also updates the logD
-          estimate. Wager used different property predictors, so structure-derived scores can differ
-          from published values. The score describes property desirability, not a probability of
-          brain penetration.
+          estimate. CNS-MPO measures how closely the compound’s properties fit the desirable ranges.
         </p>
         <p>
           <a href="https://doi.org/10.1021/cn100008c">Wager et al., 2010</a> ·
@@ -315,10 +313,9 @@ CC(C)NCC(O)COc1cccc2ccccc12</textarea
       <section id="bbb-method" hidden>
         <h3>BBB Score · Gupta et al.</h3>
         <p>
-          The spreadsheet adds five weighted contributions. A total <strong>below 4</strong> falls
+          The BBB Score adds five weighted contributions. A total <strong>below 4</strong> falls
           in the non-CNS-like band. A total <strong>of 4 or higher</strong> falls in the CNS-like
-          band. The bands describe how compounds scored in the authors’ CNS and non-CNS drug
-          datasets. Classification uses the unrounded total.
+          band. Classification uses the unrounded total.
         </p>
         <table>
           <thead>
@@ -331,29 +328,17 @@ CC(C)NCC(O)COc1cccc2ccccc12</textarea
           <tbody id="bbb-method-rows"></tbody>
         </table>
         <p>
-          Values outside each listed range contribute zero. Within range, the workbook evaluates its
-          fitted polynomial or linear function. For 0, 1, 2, 3 and 4 aromatic rings the
-          contributions are 0.336376, 0.816016, 1, 0.691115 and 0.199399, respectively.
-        </p>
-        <p>
-          MWHBN is the sum of hydrogen-bond acceptors and donors divided by the square root of
-          molecular weight in Da. The dashboard calculates these inputs with RDKit.
+          Values outside each listed range contribute zero. The aromatic-ring contribution peaks
+          at two rings. MWHBN is the sum of hydrogen-bond acceptors and donors divided by the
+          square root of molecular weight in Da.
         </p>
         <p>
           Using fragment pKa estimates, the calculator takes the strongest base with pKa ≥ 5 first,
-          then the strongest acid with pKa ≤ 9. If neither qualifies, it uses the authors’ neutral
-          default of 8.81. Enter a workbook pKa under Property overrides or in the CSV column
+          then the strongest acid with pKa ≤ 9. If neither qualifies, it uses 8.81.
+          Enter a pKa under the BBB Score override or in the CSV column
           <code>bbb_pka</code> to use that value directly.
         </p>
-        <p>
-          <strong>Workbook check.</strong> With 3 aromatic rings, 28 heavy atoms, MW 368.52 Da, HBA
-          2, HBD 0, TPSA 6.48 Å² and pKa 8.1, the score is <strong>5.040301</strong> (CNS-like).
-        </p>
-        <p>
-          <a href="https://doi.org/10.1021/acs.jmedchem.9b01220">Gupta et al., 2019</a> ·
-          <a href="https://doi.org/10.1021/acs.jmedchem.9b01220.s001">Scoring workbook</a> ·
-          <a href="https://doi.org/10.1021/acs.jmedchem.9b01220.s002">pKa selection (Table S1)</a>
-        </p>
+        <p><a href="https://doi.org/10.1021/acs.jmedchem.9b01220">Gupta et al., 2019</a></p>
       </section>
     </dialog>
   </body>

@@ -6,7 +6,7 @@ const example = { rings: 3, heavy: 28, mw: 368.52, hba: 2, hbd: 0, tpsa: 6.48, p
 const close = (actual, expected) =>
   assert.ok(Math.abs(actual - expected) < 1e-12, `${actual} vs ${expected}`);
 
-test('matches every cached T0 cell and the weighted total in the supplied workbook', () => {
+test('matches the reference BBB Score and each weighted contribution', () => {
   const { contributions: c, score } = workbookScore(example);
   close(c.rings, 0.691115);
   close(c.heavy, 0.8243256102308276);
@@ -15,7 +15,7 @@ test('matches every cached T0 cell and the weighted total in the supplied workbo
   close(c.pka, 0.5 * 0.9703181503695548);
   close(score, 5.040301056516096);
 });
-test('workbook piecewise thresholds include the upper endpoints', () => {
+test('BBB Score terms include their upper endpoints', () => {
   for (const [key, excluded, included] of [
     ['heavy', [5, 46], [6, 45]],
     ['tpsa', [0, 120.01], [0.001, 120]],

@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0b1a33" />
+    <meta
+      name="description"
+      content="Calculate CNS-MPO and BBB Scores for molecular structures and compound libraries in your browser."
+    />
+    <title>CNS-MPO &amp; BBB Score Calculator · MD³ Group</title>
+    <link rel="icon" href="assets/md3-mark-solid.svg" />
+    <link rel="stylesheet" href="style.css" />
+    <script defer src="vendor/RDKit_minimal.js"></script>
+    <script type="module" src="app.js"></script>
+  </head>
+  <body>
+    <svg xmlns="http://www.w3.org/2000/svg" class="symbols" aria-hidden="true">
+      <defs>
+        <symbol id="grid" viewBox="0 0 24 24">
+          <rect x="3" y="3" width="7" height="7" rx="1" />
+          <rect x="14" y="3" width="7" height="7" rx="1" />
+          <rect x="3" y="14" width="7" height="7" rx="1" />
+          <rect x="14" y="14" width="7" height="7" rx="1" />
+        </symbol>
+        <symbol id="book" viewBox="0 0 24 24">
+          <path d="M12 6C9 4 6 4 2 5v14c4-1 7-1 10 1 3-2 6-2 10-1V5c-4-1-7-1-10 1zm0 0v14" />
+        </symbol>
+        <symbol id="code" viewBox="0 0 24 24">
+          <path d="m7 7-5 5 5 5m10-10 5 5-5 5m-4-14-4 18" />
+        </symbol>
+        <symbol id="draw" viewBox="0 0 24 24">
+          <path d="m3 16 12-12 5 5L8 21l-6 1 1-6zm10-10 5 5" />
+        </symbol>
+        <symbol id="upload" viewBox="0 0 24 24">
+          <path d="M12 16V3m-5 5 5-5 5 5M3 15v5h18v-5" />
+        </symbol>
+        <symbol id="icon-download" viewBox="0 0 24 24">
+          <path d="M12 3v13m-5-5 5 5 5-5M3 16v5h18v-5" />
+        </symbol>
+        <symbol id="calc" viewBox="0 0 24 24">
+          <rect x="5" y="2.5" width="14" height="19" rx="2" />
+          <path d="M8 7h8M8 11h2m4 0h2m-8 4h2m4 0h2m-8 3h2m4 0h2" />
+        </symbol>
+        <symbol id="tune" viewBox="0 0 24 24">
+          <path d="M3 7h8m5 0h5M3 17h3m5 0h10" />
+          <circle cx="13" cy="7" r="2.3" />
+          <circle cx="8" cy="17" r="2.3" />
+        </symbol>
+        <symbol id="chev" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6" /></symbol>
+        <symbol id="activity" viewBox="0 0 24 24">
+          <path d="M3 20h18M5 16v-4m6 4V5m6 11V9" />
+        </symbol>
+      </defs>
+    </svg>
+    <div class="mast">
+      <div class="strip"></div>
+      <header class="wrap">
+        <a class="brand" href="https://mdcubed.github.io/" aria-label="MD³ Group website"
+          ><img
+            src="assets/md3-lockup-horizontal-dark.svg"
+            alt="MD³ Group — Mechanistic Drug Design and Discovery Group"
+        /></a>
+        <nav aria-label="Main navigation">
+          <a class="current" href="#calculator"
+            ><svg><use href="#grid" /></svg>Calculator</a
+          ><button id="method">
+            <svg><use href="#book" /></svg>Method
+          </button>
+        </nav>
+      </header>
+      <div class="hero-wrap">
+        <div class="hero wrap">
+          <div class="intro">
+            <div class="eyebrow"><i></i>Computational pharmacology</div>
+            <h1>CNS-MPO &amp; BBB Score</h1>
+            <p>
+              Compare CNS property desirability and predicted blood–brain barrier penetration for
+              the same compound.
+            </p>
+          </div>
+          <figure class="hero-model">
+            <div class="grid-texture"></div>
+            <img
+              src="assets/propranolol.webp"
+              alt="Ball-and-stick model of a propranolol conformer"
+            />
+            <figcaption>Propranolol <span> / </span> 3D conformer</figcaption>
+          </figure>
+        </div>
+      </div>
+    </div>
+    <main class="wrap" id="calculator">
+      <noscript>Enable JavaScript to calculate molecular properties and draw structures.</noscript>
+      <div class="workbench">
+        <section class="card input-card" aria-labelledby="input-title">
+          <h2 id="input-title">Compound input</h2>
+          <div class="tabs" role="group" aria-label="Input method">
+            <button data-mode="smiles" aria-pressed="true">
+              <svg><use href="#code" /></svg>SMILES
+            </button>
+            <button data-mode="draw" aria-pressed="false">
+              <svg><use href="#draw" /></svg>Draw
+            </button>
+            <button data-mode="upload" aria-pressed="false">
+              <svg><use href="#upload" /></svg>Upload list
+            </button>
+          </div>
+          <div id="smiles-panel">
+            <div class="field-head">
+              <label for="smiles">SMILES string</label>
+              <div class="examples">
+                <select id="example" aria-label="Load an example">
+                  <option value="">Load example</option>
+                  <option>Propranolol</option>
+                  <option>Aspirin</option>
+                  <option>Diphenhydramine</option></select
+                ><svg><use href="#chev" /></svg>
+              </div>
+            </div>
+            <textarea
+              id="smiles"
+              spellcheck="false"
+              autocapitalize="off"
+              autocomplete="off"
+              aria-describedby="smiles-help"
+            >
+CC(C)NCC(O)COc1cccc2ccccc12</textarea
+            >
+            <p class="hint" id="smiles-help">
+              Enter a single compound as a neutral parent structure.
+            </p>
+          </div>
+          <div id="draw-panel" hidden>
+            <div id="editor" aria-label="Molecular structure editor"></div>
+            <p class="hint">Use the bond and atom tools to draw a structure.</p>
+          </div>
+          <div id="upload-panel" hidden>
+            <label class="drop" id="drop"
+              ><input
+                type="file"
+                id="file"
+                accept=".csv,.tsv,.smi,.smiles,.txt,text/plain,text/csv"
+              /><svg><use href="#upload" /></svg><b id="filename">Choose a file or drop it here</b
+              ><span>CSV, TSV, SMI or TXT</span></label
+            >
+            <p class="hint">
+              Use one SMILES per line or a <code>smiles</code> column.
+              <a href="example.csv" download>Download example CSV</a>
+            </p>
+          </div>
+          <details id="overrides">
+            <summary>
+              <svg><use href="#tune" /></svg>Property overrides <span>(optional)</span
+              ><svg class="chevron"><use href="#chev" /></svg>
+            </summary>
+            <div class="over-grid">
+              <label
+                >CNS-MPO · most basic pKa<input
+                  type="number"
+                  step="any"
+                  id="pka"
+                  placeholder="Auto" /></label
+              ><label
+                >CNS-MPO · logD at pH 7.4<input
+                  type="number"
+                  step="any"
+                  id="logd"
+                  placeholder="Auto"
+              /></label>
+              <label class="bbb-override"
+                >BBB Score · workbook pKa<input
+                  type="number"
+                  step="any"
+                  id="bbb_pka"
+                  placeholder="Auto"
+              /></label>
+            </div>
+          </details>
+          <div class="actions">
+            <button class="primary" id="calculate" disabled>
+              <svg><use href="#calc" /></svg><span>Calculate scores</span>
+            </button>
+          </div>
+          <p class="status" id="status" role="status">Loading chemistry engine…</p>
+        </section>
+
+        <section class="card score-card" aria-labelledby="score-title">
+          <div class="card-heading">
+            <h2 id="score-title">Score overview</h2>
+            <span class="sample-label" id="sample-label" hidden>Example</span>
+          </div>
+          <div class="tabs score-model" role="group" aria-label="Score to inspect">
+            <button type="button" data-model="mpo" aria-pressed="true">CNS-MPO</button>
+            <button type="button" data-model="bbb" aria-pressed="false">BBB Score</button>
+          </div>
+          <div class="overview">
+            <div>
+              <div class="meta" id="metric-name">CNS-MPO score</div>
+              <div class="score"><strong id="total">—</strong><span>/ 6</span></div>
+              <div id="compound-name">Loading compound…</div>
+            </div>
+            <div class="structure" id="structure" aria-label="Calculated molecular structure"></div>
+          </div>
+          <div class="scale-caption">
+            <b id="scale-title">Desirability scale</b><span>0–6</span>
+          </div>
+          <div class="scale" role="img" aria-label="CNS-MPO score on a scale from zero to six">
+            <div class="threshold-tick" aria-hidden="true"></div>
+            <div id="pointer" hidden></div>
+          </div>
+          <div class="ticks" aria-hidden="true">
+            <span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span
+            ><span>6</span>
+          </div>
+          <p class="score-note" id="band" aria-live="polite"></p>
+          <p class="hint" id="threshold-note"></p>
+        </section>
+      </div>
+
+      <section class="profile-section" aria-labelledby="profile-title">
+        <div class="section-heading">
+          <h2 id="profile-title">Property breakdown</h2>
+          <span class="secondary" id="profile-caption">Contribution per property <b>0–1</b></span>
+        </div>
+        <div class="profile" id="profile"></div>
+      </section>
+
+      <section class="results-section" aria-labelledby="results-title">
+        <div class="section-heading">
+          <div class="count-heading">
+            <h2 id="results-title">Calculated compounds</h2>
+            <span id="count">0</span>
+          </div>
+          <button id="download" class="outline" disabled>
+            <svg><use href="#icon-download" /></svg>Download CSV
+          </button>
+        </div>
+        <div class="results-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Compound</th>
+                <th scope="col">SMILES</th>
+                <th scope="col">CNS-MPO</th>
+                <th scope="col">BBB Score</th>
+                <th scope="col">BBB band</th>
+                <th scope="col">Status</th>
+              </tr>
+            </thead>
+            <tbody id="results"></tbody>
+          </table>
+          <p id="empty">Calculated compounds will appear here for review and export.</p>
+        </div>
+        <div id="paging" hidden>
+          <button id="prev" class="outline">Previous</button><span id="page-info"></span
+          ><button id="next" class="outline">Next</button>
+        </div>
+      </section>
+    </main>
+    <footer>
+      <div class="wrap">
+        <strong>MD³ Group</strong
+        ><span>Department of Drug Design and Pharmacology · University of Copenhagen</span>
+      </div>
+    </footer>
+    <dialog id="method-dialog" aria-labelledby="method-title">
+      <div class="dialog-heading">
+        <h2 id="method-title">Scoring method</h2>
+        <button id="close" aria-label="Close method">×</button>
+      </div>
+      <section id="mpo-method">
+        <h3>CNS-MPO · Wager et al.</h3>
+        <p>
+          Wager’s CNS multiparameter optimization (CNS-MPO) score sums six equally weighted
+          desirability values. Each varies linearly between the bounds below. The total ranges from
+          0 to 6. A score ≥ 4 is the high-desirability range.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Property</th>
+              <th>Full contribution</th>
+              <th>Zero contribution</th>
+            </tr>
+          </thead>
+          <tbody id="method-rows"></tbody>
+        </table>
+        <h3>Structure-derived estimates</h3>
+        <p>
+          RDKit calculates Wildman–Crippen cLogP, average molecular weight, topological polar
+          surface area and hydrogen-bond donor count. Ordered Dimorphite-DL fragments assign
+          empirical pKa estimates to matched ionization sites. The highest matched basic pKa enters
+          the score. If it finds no basic site, the pKa contribution is 1.
+        </p>
+        <p>
+          Estimated logD uses cLogP and a Henderson–Hasselbalch approximation at pH 7.4, using the
+          strongest matched acid and base and assuming only neutral molecules partition into
+          octanol. Coupled ionization sites, substituent effects and unusual functional groups can
+          reduce accuracy.
+        </p>
+        <p>
+          Supply measured or independently calculated pKa and logD values in the overrides or in CSV
+          columns named <code>pka</code> and <code>logd</code>. A supplied pKa also updates the logD
+          estimate. Wager used different property predictors, so structure-derived scores can differ
+          from published values. The score describes property desirability, not a probability of
+          brain penetration.
+        </p>
+        <p>
+          <a href="https://doi.org/10.1021/cn100008c">Wager et al., 2010</a> ·
+          <a href="https://doi.org/10.1021/acschemneuro.6b00029">Wager et al., 2016</a> ·
+          <a href="https://github.com/durrantlab/dimorphite_dl">Dimorphite-DL ionization model</a>
+        </p>
+      </section>
+      <section id="bbb-method" hidden>
+        <h3>BBB Score · Gupta et al.</h3>
+        <p>
+          The spreadsheet adds five weighted contributions. A total <strong>below 4</strong> falls
+          in the non-CNS-like band. A total <strong>of 4 or higher</strong> falls in the CNS-like
+          band. The bands describe how compounds scored in the authors’ CNS and non-CNS drug
+          datasets. Classification uses the unrounded total.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Descriptor</th>
+              <th>Scored range</th>
+              <th>Weight</th>
+            </tr>
+          </thead>
+          <tbody id="bbb-method-rows"></tbody>
+        </table>
+        <p>
+          Values outside each listed range contribute zero. Within range, the workbook evaluates its
+          fitted polynomial or linear function. For 0, 1, 2, 3 and 4 aromatic rings the
+          contributions are 0.336376, 0.816016, 1, 0.691115 and 0.199399, respectively.
+        </p>
+        <p>
+          MWHBN is the sum of hydrogen-bond acceptors and donors divided by the square root of
+          molecular weight in Da. The dashboard calculates these inputs with RDKit.
+        </p>
+        <p>
+          Using fragment pKa estimates, the calculator takes the strongest base with pKa ≥ 5 first,
+          then the strongest acid with pKa ≤ 9. If neither qualifies, it uses the authors’ neutral
+          default of 8.81. Enter a workbook pKa under Property overrides or in the CSV column
+          <code>bbb_pka</code> to use that value directly.
+        </p>
+        <p>
+          <strong>Workbook check.</strong> With 3 aromatic rings, 28 heavy atoms, MW 368.52 Da, HBA
+          2, HBD 0, TPSA 6.48 Å² and pKa 8.1, the score is <strong>5.040301</strong> (CNS-like).
+        </p>
+        <p>
+          <a href="https://doi.org/10.1021/acs.jmedchem.9b01220">Gupta et al., 2019</a> ·
+          <a href="https://doi.org/10.1021/acs.jmedchem.9b01220.s001">Scoring workbook</a> ·
+          <a href="https://doi.org/10.1021/acs.jmedchem.9b01220.s002">pKa selection (Table S1)</a>
+        </p>
+      </section>
+    </dialog>
+  </body>
+</html>

@@ -1,0 +1,39 @@
+# Public release files only. Add an exact exception after reviewing a new file.
+# This also covers reference PDFs/workbooks, compound data and exports, secrets,
+# editor settings, and local build or testing artifacts anywhere in the tree.
+*
+!/.gitignore
+!/.gitleaks.toml
+!/README.md
+
+!/.githooks/
+!/.githooks/pre-push
+
+!/tests/
+!/tests/bbb.test.mjs
+
+!/docs/
+!/docs/.nojekyll
+!/docs/index.html
+!/docs/style.css
+!/docs/app.js
+!/docs/bbb.js
+!/docs/chemistry.js
+!/docs/files.js
+!/docs/example.csv
+
+!/docs/assets/
+!/docs/assets/md3-lockup-horizontal-dark.svg
+!/docs/assets/md3-mark-dark.svg
+!/docs/assets/md3-mark-solid.svg
+!/docs/assets/propranolol.webp
+
+!/docs/vendor/
+!/docs/vendor/openchemlib.js
+!/docs/vendor/OpenChemLib-LICENSE.txt
+!/docs/vendor/RDKit_minimal.js
+!/docs/vendor/RDKit_minimal.wasm
+!/docs/vendor/RDKit-LICENSE.txt
+!/docs/vendor/dimorphite/
+!/docs/vendor/dimorphite/site_substructures.smarts
+!/docs/vendor/dimorphite/LICENSE.md

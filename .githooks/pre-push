@@ -1,0 +1,59 @@
+#!/usr/bin/env python3
+"""Check the complete history of each outgoing branch or tag before a public push."""
+
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+
+
+def git(*args):
+    return subprocess.check_output(["git", *args])
+
+
+def check_push():
+    tips = set()
+    tag_messages = bytearray()
+    for update in sys.stdin.buffer:
+        _, local_oid, _, _ = update.split()
+        if not local_oid.strip(b"0"):  # A ref deletion sends no objects.
+            continue
+        oid = local_oid.decode("ascii")
+        while git("cat-file", "-t", oid).strip() == b"tag":
+            tag = git("cat-file", "-p", oid)
+            tag_messages.extend(tag + b"\n")
+            oid = tag.splitlines()[0].split()[1].decode("ascii")
+        # Only commits and tags resolving to commits have an auditable file tree.
+        tips.add(git("rev-parse", "--verify", oid + "^{commit}").decode().strip())
+    if not tips:
+        return
+
+    # Include deleted paths, merge resolutions and earlier versions on a new branch.
+    paths = git("log", "--full-history", "--root", "-m", "--no-renames", "--format=",
+                "--name-only", "-z", *sorted(tips), "--")
+    names = set(paths.split(b"\0")) - {b""}
+    # Only the root's exact file exceptions authorize publication. An untracked
+    # nested .gitignore can otherwise override the root's ignore rules locally.
+    public = {line[2:] for line in Path(".gitignore").read_bytes().splitlines()
+              if line.startswith(b"!/") and not line.endswith(b"/")}
+    if names - public:
+        sys.exit("Push blocked: outgoing history includes a path outside the public file list.")
+
+    bundled = Path(os.fsdecode(git("rev-parse", "--git-path", "gitleaks").strip())).resolve()
+    scanner = str(bundled) if bundled.is_file() else shutil.which("gitleaks")
+    if not scanner:
+        sys.exit("Push blocked: install Gitleaks v8.30 or newer and retry.")
+    options = ["--redact", "--no-banner", "--ignore-gitleaks-allow", "--config", ".gitleaks.toml",
+               "--gitleaks-ignore-path", os.devnull]
+    history = "--full-history --root -m --no-renames " + " ".join(sorted(tips))
+    subprocess.run([scanner, "git", *options, "--log-opts", history, "."], check=True)
+    messages = git("log", "--format=%B", *sorted(tips), "--")
+    subprocess.run([scanner, "stdin", *options], input=messages + tag_messages, check=True)
+
+
+if __name__ == "__main__":
+    try:
+        check_push()
+    except (OSError, ValueError, subprocess.CalledProcessError) as error:
+        sys.exit(f"Push blocked: publication checks did not pass ({type(error).__name__}).")

@@ -1,6 +1,8 @@
 import { createCalculator, properties } from './chemistry.js';
 import { bbbProperties } from './bbb.js';
 import { readList, csvString } from './files.js';
+import { depictionSize, depictionSvg, rowDepiction, svgToPng } from './depict.js';
+import { buildWorkbook } from './xlsx.js';
 
 const $ = (id) => document.getElementById(id);
 const make = (tag, text, cls) => {
@@ -78,29 +80,17 @@ function display(row, sample = false) {
   $('structure').replaceChildren();
   if (structureUrl) URL.revokeObjectURL(structureUrl);
   if (row?.result) {
-    const mol = rdkit.get_mol(row.result.canonical);
-    try {
-      const svg = mol.get_svg_with_highlights(
-        JSON.stringify({
-          width: 260,
-          height: 125,
-          clearBackground: false,
-          bondLineWidth: 2.1,
-          padding: 0.08,
-          atomColourPalette: {
-            6: [0.08, 0.16, 0.25],
-            7: [0.12, 0.27, 0.47],
-            8: [0.52, 0.36, 0.12],
-          },
-        }),
-      );
+    const svg = depictionSvg(rdkit, row.result.canonical, {
+      width: 260,
+      height: 125,
+      bondLineWidth: 2.1,
+    });
+    if (svg) {
       structureUrl = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
       const img = make('img');
       img.alt = 'Structure of ' + row.name;
       img.src = structureUrl;
       $('structure').append(img);
-    } finally {
-      mol.delete();
     }
   }
   $('profile').replaceChildren();
@@ -172,8 +162,20 @@ function renderTable() {
       btn.addEventListener('click', () => display(row));
       name.append(btn);
     } else name.textContent = row.name;
+    const structure = make('td', undefined, 'structure-cell');
+    const art = rowDepiction(rdkit, row);
+    if (art) {
+      const img = make('img');
+      img.src = art.uri;
+      img.alt = 'Structure of ' + row.name;
+      img.loading = 'lazy';
+      img.width = depictionSize.width;
+      img.height = depictionSize.height;
+      structure.append(img);
+    } else structure.textContent = '—';
     tr.append(
       name,
+      structure,
       make('td', row.smiles),
       make('td', formatScore(row.result?.mpo)),
       make('td', formatScore(row.result?.bbb)),
@@ -185,6 +187,7 @@ function renderTable() {
   $('count').textContent = records.length;
   $('empty').hidden = !!records.length;
   $('download').disabled = !records.length;
+  $('download-xlsx').disabled = !records.length;
   $('paging').hidden = records.length <= pageSize;
   $('prev').disabled = page === 0;
   $('next').disabled = start + pageSize >= records.length;
@@ -357,8 +360,10 @@ $('next').onclick = () => {
   page++;
   renderTable();
 };
-$('download').onclick = () => {
+// Shared by both exports so the CSV and the workbook can never drift apart.
+function exportTable() {
   const keys = properties.map((x) => x.key);
+  const bbbKeys = bbbProperties.map((p) => p.key);
   const header = [
     'name',
     'smiles',
@@ -369,9 +374,6 @@ $('download').onclick = () => {
     'pka_source',
     'logd_source',
     'status',
-  ];
-  const bbbKeys = bbbProperties.map((p) => p.key);
-  header.push(
     'bbb_score',
     'bbb_band',
     'aromatic_rings',
@@ -381,7 +383,7 @@ $('download').onclick = () => {
     'bbb_pka',
     'bbb_pka_source',
     ...bbbKeys.map((k) => 'bbb_' + k + '_contribution'),
-  );
+  ];
   const rows = records.map((row) => {
     const r = row.result?.mpo,
       b = row.result?.bbb;
@@ -408,16 +410,69 @@ $('download').onclick = () => {
       ...bbbKeys.map((k) => b?.contributions?.[k]),
     ];
   });
-  const url = URL.createObjectURL(
-    new Blob([csvString([header, ...rows])], { type: 'text/csv;charset=utf-8' }),
-  );
+  return { header, rows };
+}
+function saveBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
   const link = make('a');
   link.href = url;
-  link.download = 'cns-mpo-bbb-results.csv';
+  link.download = filename;
   document.body.append(link);
   link.click();
   link.remove();
   setTimeout(() => URL.revokeObjectURL(url), 3000);
+}
+$('download').onclick = () => {
+  const { header, rows } = exportTable();
+  // CSV is plain text and cannot carry a picture. The depiction travels as an
+  // SVG data: URI instead — paste it into a browser address bar to view it, or
+  // read it back programmatically. Use the Excel export to *see* the structures.
+  const withStructures = rows.map((row, i) => [...row, rowDepiction(rdkit, records[i])?.uri ?? '']);
+  saveBlob(
+    new Blob([csvString([[...header, 'structure_svg'], ...withStructures])], {
+      type: 'text/csv;charset=utf-8',
+    }),
+    'cns-mpo-bbb-results.csv',
+  );
+};
+$('download-xlsx').onclick = async () => {
+  const button = $('download-xlsx');
+  if (busy || button.disabled) return;
+  button.disabled = true;
+  const previous = $('status').textContent;
+  try {
+    const { header, rows } = exportTable();
+    const images = [];
+    for (const [i, row] of records.entries()) {
+      const art = rowDepiction(rdkit, row);
+      const bytes = art ? await svgToPng(art.svg) : null;
+      if (bytes) images.push({ row: i + 1, column: 1, bytes, alt: 'Structure of ' + row.name });
+      if ((i + 1) % 25 === 0 && i + 1 < records.length) {
+        status('Rendering structures… ' + (i + 1) + ' of ' + records.length);
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      }
+    }
+    // Structure sits in column B, next to the name.
+    const columnWidths = [26, Math.round((depictionSize.width + 10) / 7)];
+    saveBlob(
+      buildWorkbook({
+        header: [header[0], 'structure', ...header.slice(1)],
+        rows: rows.map((row) => [row[0], '', ...row.slice(1)]),
+        images,
+        imageSize: depictionSize,
+        columnWidths,
+        rowHeight: Math.round((depictionSize.height + 8) * 0.75),
+        sheetName: 'CNS-MPO & BBB',
+      }),
+      'cns-mpo-bbb-results.xlsx',
+    );
+    status(previous);
+  } catch (e) {
+    console.error(e);
+    status('Could not build the Excel workbook. The CSV export still works.', true);
+  } finally {
+    button.disabled = !records.length;
+  }
 };
 $('method').onclick = () => $('method-dialog').showModal();
 $('close').onclick = () => $('method-dialog').close();

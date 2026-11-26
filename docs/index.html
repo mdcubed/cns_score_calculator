@@ -232,15 +232,21 @@ CC(C)NCC(O)COc1cccc2ccccc12</textarea
             <h2 id="results-title">Calculated compounds</h2>
             <span id="count">0</span>
           </div>
-          <button id="download" class="outline" disabled>
-            <svg><use href="#icon-download" /></svg>Download CSV
-          </button>
+          <div class="export-actions">
+            <button id="download" class="outline" disabled>
+              <svg><use href="#icon-download" /></svg>Download CSV
+            </button>
+            <button id="download-xlsx" class="outline" disabled>
+              <svg><use href="#icon-download" /></svg>Download Excel
+            </button>
+          </div>
         </div>
         <div class="results-wrap">
           <table>
             <thead>
               <tr>
                 <th scope="col">Compound</th>
+                <th scope="col">Structure</th>
                 <th scope="col">SMILES</th>
                 <th scope="col">CNS-MPO</th>
                 <th scope="col">BBB Score</th>

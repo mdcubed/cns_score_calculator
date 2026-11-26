@@ -1,6 +1,6 @@
 # MD³ CNS-MPO and BBB Score Calculator
 
-Paste a SMILES string, draw a structure or upload a compound list to calculate both scores in your browser. Select a model in **Score overview** to inspect each property’s contribution. Download the results as CSV before reloading the page, which clears the session.
+Paste a SMILES string, draw a structure or upload a compound list to calculate both scores in your browser. Select a model in **Score overview** to inspect each property’s contribution. Download the results as CSV or Excel before reloading the page, which clears the session.
 
 ## Compound lists
 
@@ -14,7 +14,7 @@ Use one neutral parent molecule per entry. CSV and TSV files accept the followin
 | `logd` | LogD at pH 7.4 for CNS-MPO |
 | `bbb_pka` | pKa for the BBB Score |
 
-Leave optional property values blank to use estimates. Headerless CSV and TSV files take SMILES in the first column and an optional name in the second. TXT and SMI files take one SMILES per line followed by an optional name. The export includes both scores, the BBB classification, property values, contributions and any row errors. [Example CSV](docs/example.csv)
+Leave optional property values blank to use estimates. Headerless CSV and TSV files take SMILES in the first column and an optional name in the second. TXT and SMI files take one SMILES per line followed by an optional name. The export includes both scores, the BBB classification, property values, contributions and any row errors. The Excel workbook shows each 2D structure next to the compound name; the CSV carries it as an SVG data URI in `structure_svg`. [Example CSV](docs/example.csv)
 
 ## Interpreting the scores
 

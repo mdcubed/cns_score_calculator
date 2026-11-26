@@ -648,6 +648,15 @@ tbody tr:last-child td {
   font-variant-numeric: tabular-nums;
   font-weight: bold;
 }
+/* Only SMILES may break anywhere. Elsewhere, whole words set the column's
+   minimum width, so the fixed Structure column cannot squeeze names and
+   statuses into mid-word breaks; the wrapper scrolls instead. */
+.results-wrap td:not(:nth-child(3)) {
+  overflow-wrap: break-word;
+}
+.results-wrap table {
+  min-width: 800px;
+}
 .export-actions {
   display: flex;
   align-items: center;
@@ -664,7 +673,6 @@ tbody tr:last-child td {
   height: 110px;
   object-fit: contain;
   border-radius: 4px;
-  background: #fff;
 }
 .row-link {
   text-align: left;
@@ -856,9 +864,6 @@ dialog th {
   }
   .section-heading h2 {
     font-size: 1.28rem;
-  }
-  .results-wrap table {
-    min-width: 800px;
   }
   .tile {
     padding: 12px;
